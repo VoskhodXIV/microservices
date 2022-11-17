@@ -4,7 +4,7 @@ aws.config.update({ region: 'us-east-1' })
 const ses = new aws.SES({ region: 'us-east-1' })
 const docClient = new aws.DynamoDB.DocumentClient()
 
-const emailHandler = async (event) => {
+const handler = async (event) => {
   const message = event.Records[0].Sns.Message
   const json = JSON.parse(message)
   const email = json.username
@@ -13,12 +13,11 @@ const emailHandler = async (event) => {
   const secondsInEpoch = Math.round(Date.now() / 1000)
   const expirationTime = secondsInEpoch + seconds
 
-  // Creating a table for DynamoDB
   const table = {
     TableName: 'csye-6225',
     Item: {
       Email: email,
-      TokenName: token,
+      Token: token,
       TimeToLive: expirationTime,
     },
   }
@@ -35,7 +34,6 @@ const emailHandler = async (event) => {
       console.log('Added:', JSON.stringify(data, null, 2))
     }
   })
-  console.log(`email:${email} token:${token}`)
 
   const mailbody = `
     <!DOCTYPE html>
@@ -45,14 +43,16 @@ const emailHandler = async (event) => {
       <body>
         <p>Hi, ${email}</p>
         <p>
-          Please verify your email</br>
-          <b>Link will be valid only for 5 minutes!</b>
+          Thank you for signing up with Network Structures and Cloud Computing coursework for this semester!
+          While we have you registered to use our REST API service, we need to verify your account.
           </br>
-          Find your link below:
+          The below link will redirect you to verify your email and allow your to consume our REST API.
+          <b>Link below link will be valid only for 5 minutes:</b>
+          </br>
         </p>
         <p>
-          <a href=https://prod.sydrawat.me/v1/user/verifyUserEmail?token=${token}&email=${email} >
-          https://prod.sydrawat.me/v1/user/verifyUserEmail?token=${token}&email=${email}</a>
+          <a href=http://prod.sydrawat.me:1337/v1/verifyUserEmail?token=${token}&email=${email} >
+          http://prod.sydrawat.me:1337/v1/verifyUserEmail?token=${token}&email=${email}</a>
         </p>
       </body>
     </html>`
@@ -70,15 +70,14 @@ const emailHandler = async (event) => {
       },
       Subject: {
         Charset: 'UTF-8',
-        Data: 'Email Verification',
+        Data: 'Verify your new account',
       },
     },
-    Source: 'noreply@prod.sydrawat.me',
+    Source: 'no-reply@prod.sydrawat.me',
   }
-  console.log('email sent')
   return ses.sendEmail(params).promise()
 }
 
 module.exports = {
-  emailHandler,
+  handler,
 }

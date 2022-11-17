@@ -14,7 +14,7 @@ To push your lambda function to work with Amazon SES and SNS, we need to first `
 
 ```shell
 # create a .zip of the Lambda function (make sure you're in the correct working directory)
-zip -r lambda-fn.zip ./
+zip -r <your-lambda-fn>.zip ./
 
 # pushing lambda function microservice to SES trigger
 aws lambda update-function-code --function-name <your-lambda-fn-name> --zip-file fileb://lambda-fn.zip
