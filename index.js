@@ -21,7 +21,6 @@ const handler = async (event) => {
       TimeToLive: expirationTime,
     },
   }
-  console.log('Adding new item')
 
   // Putting an item to DynamoDB Table
   docClient.put(table, (err, data) => {
@@ -30,18 +29,11 @@ const handler = async (event) => {
         'Unable to add item. Error JSON:',
         JSON.stringify(err, null, 2)
       )
-    } else {
-      console.log('Added:', JSON.stringify(data, null, 2))
     }
   })
 
   const mailbody = `
-    <!DOCTYPE html>
-    <html>
-      <head>
-      </head>
-      <body>
-        <p>Hi, ${email}</p>
+        <h3>Hi, ${email}</h3>
         <p>
           Thank you for signing up with Network Structures and Cloud Computing coursework for this semester!
           While we have you registered to use our REST API service, we need to verify your account.
@@ -50,12 +42,13 @@ const handler = async (event) => {
           <b>Link below link will be valid only for 5 minutes:</b>
           </br>
         </p>
-        <p>
-          <a href=http://prod.sydrawat.me:1337/v1/verifyUserEmail?token=${token}&email=${email} >
-          http://prod.sydrawat.me:1337/v1/verifyUserEmail?token=${token}&email=${email}</a>
+        <p> Verify your link:
+          <a href=prod.sydrawat.me:1337/v1/verifyUserEmail?token=${token}&email=${email} >
+          prod.sydrawat.me:1337/v1/verifyUserEmail?token=${token}&email=${email}</a>
         </p>
-      </body>
-    </html>`
+        <br/>
+        Thank You!
+        <br/>`
 
   const params = {
     Destination: {
@@ -70,11 +63,12 @@ const handler = async (event) => {
       },
       Subject: {
         Charset: 'UTF-8',
-        Data: 'Verify your new account',
+        Data: 'Account verification for CSYE6225: Action required',
       },
     },
-    Source: 'no-reply@prod.sydrawat.me',
+    Source: 'non-reply@prod.sydrawat.me',
   }
+  console.log('Email successfully sent to:', { email })
   return ses.sendEmail(params).promise()
 }
 
