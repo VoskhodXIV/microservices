@@ -32,7 +32,7 @@ jobs:
 
       - name: Step 4 - Deploy the Lambda function
         run: |
-          aws lambda update-function-code --function-name=${{ env.AWS_LAMBDA_FUNCTION_NAME }} --zip-file=fileb://function.zip
+          aws lambda update-function-code --function-name ${{ env.AWS_LAMBDA_FUNCTION_NAME }} --zip-file fileb://function.zip
 
       - name: Step 5 - Cleanup artifacts
         run: |
