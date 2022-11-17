@@ -1,1 +1,40 @@
 #This workflow will build and deploy our Lambda function microservice
+name: Amazon Lambda Function
+
+env:
+  AWS_REGION: us-east-1
+  AWS_LAMBDA_FUNCTION_NAME: emailVerify
+
+on:
+  push:
+    branches: [master]
+jobs:
+  lambda_deploy:
+    runs-on: ubuntu-latest
+    name: Deploy Lambda Function
+    steps:
+      - name: Step 1 - Checkout code from branch
+        uses: actions/checkout@v2
+
+      - name: Step 2 - Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_PROD_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_PROD_SECRET_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Step 3 - Create the artifact
+        run: |
+          ls -la
+          zip -r function.zip ./
+          chmod +x function.zip
+          ls -la
+
+      - name: Step 4 - Deploy the Lambda function
+        run: |
+          aws lambda update-function-code --function-name=${{ env.AWS_LAMBDA_FUNCTION_NAME }} --zip-file=fileb://function.zip
+
+      - name: Step 5 - Cleanup artifacts
+        run: |
+          rm -rf function.zip
+          ls -la
