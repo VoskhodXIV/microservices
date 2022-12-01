@@ -1,4 +1,8 @@
-# :jigsaw: serverless
+# :jigsaw: Serverless
+
+[![Serverless Microservice](https://github.com/ArtemisIX/serverless/actions/workflows/deploy-lambda.yml/badge.svg)](https://github.com/ArtemisIX/serverless/actions/workflows/deploy-lambda.yml)
+
+This is a simple microservice that will trigger an email via Amazon SES to the user, asking them to verify their account, in order to consume the REST API.
 
 ## :dart: Features
 
@@ -20,9 +24,9 @@ zip -r <your-lambda-fn>.zip ./
 aws lambda update-function-code --function-name <your-lambda-fn-name> --zip-file fileb://lambda-fn.zip
 ```
 
-## WIP
+## :arrows_clockwise: Github Actions workflow for CI/CD pipelines
 
-> TODO: Implement/Configure GitHub actions to run the above command on `push` to `master` branch.
+We will push out our serverless function to Amazon Lambda via a GitHub workflow, where each time we push to the serverless email microservice, we will update the lambda function on the Amazon Lambda service.
 
 ## :ninja: Author
 
