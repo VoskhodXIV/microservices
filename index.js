@@ -57,7 +57,7 @@ const handler = async (event) => {
           incorrect, please contact our support team.
         </p>
         <br/>
-        Sincerely yours,
+        Thanks,
         <br/>
         The CSYE team
         <br/>`
