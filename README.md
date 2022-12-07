@@ -6,7 +6,7 @@ This is a simple microservice that will trigger an email via Amazon SES to the u
 
 ## :dart: Features
 
-A microservice that sends verification mail to users who create a new account using the REST API for [http://prod.sydrawat.me:1337](http://prod.sydrawat.me:1337).
+A microservice that sends verification mail to users who create a new account using the REST API for [https://prod.sydrawat.me](https://prod.sydrawat.me).
 
 Amazon SES does not trigger multiple verification e-mails to the user even if the user hits the endpoint `/v1/account/` multiple times. The verification mail is sent only once per unique user email-id.
 

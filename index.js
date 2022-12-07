@@ -43,8 +43,8 @@ const handler = async (event) => {
           </br>
         </p>
         <p> Verify your link:
-          <a href=https://prod.sydrawat.me/v1/verifyUserEmail?token=${token}&email=${email} >
-          https://prod.sydrawat.me/v1/verifyUserEmail?token=${token}&email=${email}</a>
+          <a href=https://prod.sydrawat.me/v2/verifyUserEmail?token=${token}&email=${email} >
+          https://prod.sydrawat.me/v2/verifyUserEmail?token=${token}&email=${email}</a>
         </p>
         <br/>
         <p>
