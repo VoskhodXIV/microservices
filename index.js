@@ -78,7 +78,7 @@ const handler = async (event) => {
         Data: 'Account verification for CSYE6225: Action required',
       },
     },
-    Source: 'noreplysydrawat@prod.sydrawat.me',
+    Source: 'noreply@prod.sydrawat.me',
   }
   console.log('Email successfully sent to:', { email })
   return ses.sendEmail(params).promise()
