@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Serverless for AWS SES and Lambda Functions",
   "main": "index.js",
-  "repository": "https://github.com/ArtemisIX/serverless",
+  "repository": "https://github.com/VoskhodXIV/microservices",
   "author": "Siddharth Rawat <rawat.sid@northeastern.edu>",
   "license": "MIT",
   "private": true,
