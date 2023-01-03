@@ -4,6 +4,7 @@ name: Amazon Lambda Function
 env:
   AWS_REGION: us-east-1
   AWS_LAMBDA_FUNCTION_NAME: emailVerify
+  ENVIRONMENT: prod
 
 on:
   push:
@@ -13,28 +14,31 @@ jobs:
     runs-on: ubuntu-latest
     name: Deploy Lambda Function
     steps:
-      - name: Step 1 - Checkout code from branch
+      - name: Checkout code from branch
         uses: actions/checkout@v3
 
-      - name: Step 2 - Configure AWS Credentials
+      - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1-node16
         with:
           aws-access-key-id: ${{ secrets.AWS_PROD_ACCESS_KEY }}
           aws-secret-access-key: ${{ secrets.AWS_PROD_SECRET_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Step 3 - Create the artifact
+      - name: Create the .env file
         run: |
-          ls -la
-          zip -r function.zip ./
-          chmod +x function.zip
-          ls -la
+          touch .env
+          echo TrackUserEmailDynamoDBTable=${{ secrets.DYDBTABLE}} >> .env
+          echo TrackUserEmailDynamoDBRegion=${{ env.AWS_REGION}} >> .env
+          echo DomainEnvironment=${{ env.ENVIRONMENT}} >> .env
 
-      - name: Step 4 - Deploy the Lambda function
-        run: |
-          aws lambda update-function-code --function-name ${{ env.AWS_LAMBDA_FUNCTION_NAME }} --zip-file fileb://function.zip
+      - name: Create the artifact
+          zip -r serverless.zip ./
+          chmod +x serverless.zip
 
-      - name: Step 5 - Cleanup artifacts
+      - name: Deploy the Lambda function
         run: |
-          rm -rf function.zip
-          ls -la
+          aws lambda update-function-code --function-name ${{ env.AWS_LAMBDA_FUNCTION_NAME }} --zip-file fileb://serverless.zip
+
+      - name: Cleanup artifacts
+        run: |
+          rm -rf serverless.zip

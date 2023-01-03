@@ -1,4 +1,5 @@
 const AWS = require('aws-sdk')
+const config = require('./src/configs/service.config')
 
 const checkSentEmail = async (
   dynamoDBClient,
@@ -12,6 +13,7 @@ const checkSentEmail = async (
     },
   }
   const data = await dynamoDBClient.get(params).promise()
+  console.log('Data:', data)
   if (data.Item) return true
   return false
 }
@@ -33,15 +35,15 @@ const logSentEmail = async (
 
 const handler = async (event, context, callback) => {
   console.log(`Received event ${JSON.stringify(event, null, 4)}`)
-  const trackUserEmailDynamoDBTable = process.env.TrackUserEmailDynamoDBTable
+  const trackUserEmailDynamoDBTable = config.TrackUserEmailDynamoDBTable
   const trackUserEmailDynamoDBRegion =
-    process.env.TrackUserEmailDynamoDBRegion || 'us-west-1'
-  const domainEnvironment = process.env.DomainEnvironment || 'prod'
+    config.TrackUserEmailDynamoDBRegion || 'us-east-1'
+  const domainEnvironment = config.DomainEnvironment || 'prod'
 
   console.log('Setting AWS region to:', trackUserEmailDynamoDBRegion)
-  AWS.config.update({ region: emailTrackingDynamoDBRegion })
+  AWS.config.update({ region: 'us-east-1' })
   const dynamoDBClient = new AWS.DynamoDB.DocumentClient({
-    region: trackUserEmailDynamoDBRegion,
+    region: 'us-east-1',
   })
 
   const message = event.Records[0].Sns.Message
@@ -50,7 +52,7 @@ const handler = async (event, context, callback) => {
   const email = parsedMessage.username
   const { first_name, last_name, token } = parsedMessage
 
-  const emailAlreadySent = checkSentEmail(
+  const emailAlreadySent = await checkSentEmail(
     dynamoDBClient,
     trackUserEmailDynamoDBTable,
     email
@@ -60,39 +62,727 @@ const handler = async (event, context, callback) => {
     console.log(`Sending email to ${email}`)
     const ses = new AWS.SES()
     const mailbody = `
-          <h3>Hello ${first_name}} ${last_name},</h3>
-          <p>
-            Thank you for registering with Network Structures and Cloud Computing coursework for this semester!
-          </p>
-          <p>
-            While we have you registered to use our REST API service, we need to verify your account.
-          </p>
-          <br>
-          <p>
-            The below link will redirect you to verify your email and allow your to consume our REST API.
-            <b>Link below link will be valid only for 5 minutes:</b>
-            <br>
-          </p>
-          <p> Verify your account:
-            <br>
-            <a href=https://${domainEnvironment}.sydrawat.me/v2/verifyUserEmail?token=${token}&email=${email} >
-            https://${domainEnvironment}.sydrawat.me/v2/verifyUserEmail?token=${token}&email=${email}</a>
-          </p>
-          <br>
-          <p>
-            If you did not create a account with us, it is possible that someone else is trying to access our service
-            by using your account ${email}. <b>Do not forward or give this link to anyone.</b>
-          </p>
-          <br>
-          <p>
-            You received this email because you require access to use our REST API services. If you think this is
-            incorrect, please contact our support team.
-          </p>
-          <br>
-          Sincerely,
-          <br/>
-          The ${domainEnvironment} CSYE team
-          <br>`
+    <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+    <html xmlns="http://www.w3.org/1999/xhtml">
+
+    <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+      <title>Verify your account!</title>
+      <style type="text/css">
+        /* reset */
+        article,
+        aside,
+        details,
+        figcaption,
+        figure,
+        footer,
+        header,
+        hgroup,
+        nav,
+        section,
+        summary {
+          display: block
+        }
+
+        audio,
+        canvas,
+        video {
+          display: inline-block;
+          *display: inline;
+          *zoom: 1
+        }
+
+        audio:not([controls]) {
+          display: none;
+          height: 0
+        }
+
+        [hidden] {
+          display: none
+        }
+
+        html {
+          font-size: 100%;
+          -webkit-text-size-adjust: 100%;
+          -ms-text-size-adjust: 100%
+        }
+
+        html,
+        button,
+        input,
+        select,
+        textarea {
+          font-family: sans-serif
+        }
+
+        body {
+          margin: 0
+        }
+
+        a:focus {
+          outline: thin dotted
+        }
+
+        a:active,
+        a:hover {
+          outline: 0
+        }
+
+        h1 {
+          font-size: 2em;
+          margin: 0 0.67em 0
+        }
+
+        h2 {
+          font-size: 1.5em;
+          margin: 0 0 .83em 0
+        }
+
+        h3 {
+          font-size: 1.17em;
+          margin: 1em 0
+        }
+
+        h4 {
+          font-size: 1em;
+          margin: 1.33em 0
+        }
+
+        h5 {
+          font-size: .83em;
+          margin: 1.67em 0
+        }
+
+        h6 {
+          font-size: .75em;
+          margin: 2.33em 0
+        }
+
+        abbr[title] {
+          border-bottom: 1px dotted
+        }
+
+        b,
+        strong {
+          font-weight: bold
+        }
+
+        blockquote {
+          margin: 1em 40px
+        }
+
+        dfn {
+          font-style: italic
+        }
+
+        mark {
+          background: #ff0;
+          color: #000
+        }
+
+        p,
+        pre {
+          margin: 1em 0
+        }
+
+        code,
+        kbd,
+        pre,
+        samp {
+          font-family: monospace, serif;
+          _font-family: 'courier new', monospace;
+          font-size: 1em
+        }
+
+        pre {
+          white-space: pre;
+          white-space: pre-wrap;
+          word-wrap: break-word
+        }
+
+        q {
+          quotes: none
+        }
+
+        q:before,
+        q:after {
+          content: '';
+          content: none
+        }
+
+        small {
+          font-size: 75%
+        }
+
+        sub,
+        sup {
+          font-size: 75%;
+          line-height: 0;
+          position: relative;
+          vertical-align: baseline
+        }
+
+        sup {
+          top: -0.5em
+        }
+
+        sub {
+          bottom: -0.25em
+        }
+
+        dl,
+        menu,
+        ol,
+        ul {
+          margin: 1em 0
+        }
+
+        dd {
+          margin: 0 0 0 40px
+        }
+
+        menu,
+        ol,
+        ul {
+          padding: 0 0 0 40px
+        }
+
+        nav ul,
+        nav ol {
+          list-style: none;
+          list-style-image: none
+        }
+
+        img {
+          border: 0;
+          -ms-interpolation-mode: bicubic
+        }
+
+        svg:not(:root) {
+          overflow: hidden
+        }
+
+        figure {
+          margin: 0
+        }
+
+        form {
+          margin: 0
+        }
+
+        fieldset {
+          border: 1px solid #c0c0c0;
+          margin: 0 2px;
+          padding: .35em .625em .75em
+        }
+
+        legend {
+          border: 0;
+          padding: 0;
+          white-space: normal;
+          *margin-left: -7px
+        }
+
+        button,
+        input,
+        select,
+        textarea {
+          font-size: 100%;
+          margin: 0;
+          vertical-align: baseline;
+          *vertical-align: middle
+        }
+
+        button,
+        input {
+          line-height: normal
+        }
+
+        button,
+        html input[type="button"],
+        input[type="reset"],
+        input[type="submit"] {
+          -webkit-appearance: button;
+          cursor: pointer;
+          *overflow: visible
+        }
+
+        button[disabled],
+        input[disabled] {
+          cursor: default
+        }
+
+        input[type="checkbox"],
+        input[type="radio"] {
+          box-sizing: border-box;
+          padding: 0;
+          *height: 13px;
+          *width: 13px
+        }
+
+        input[type="search"] {
+          -webkit-appearance: textfield;
+          -moz-box-sizing: content-box;
+          -webkit-box-sizing: content-box;
+          box-sizing: content-box
+        }
+
+        input[type="search"]::-webkit-search-cancel-button,
+        input[type="search"]::-webkit-search-decoration {
+          -webkit-appearance: none
+        }
+
+        button::-moz-focus-inner,
+        input::-moz-focus-inner {
+          border: 0;
+          padding: 0
+        }
+
+        textarea {
+          overflow: auto;
+          vertical-align: top
+        }
+
+        table {
+          border-collapse: collapse;
+          border-spacing: 0
+        }
+
+        /* custom client-specific styles including styles for different online clients */
+        .ReadMsgBody {
+          width: 100%;
+        }
+
+        .ExternalClass {
+          width: 100%;
+        }
+
+        /* hotmail / outlook.com */
+        .ExternalClass,
+        .ExternalClass p,
+        .ExternalClass span,
+        .ExternalClass font,
+        .ExternalClass td,
+        .ExternalClass div {
+          line-height: 100%;
+        }
+
+        /* hotmail / outlook.com */
+        table,
+        td {
+          mso-table-lspace: 0pt;
+          mso-table-rspace: 0pt;
+        }
+
+        /* Outlook */
+        #outlook a {
+          padding: 0;
+        }
+
+        /* Outlook */
+        img {
+          -ms-interpolation-mode: bicubic;
+          display: block;
+          outline: none;
+          text-decoration: none;
+        }
+
+        /* IExplorer */
+        body,
+        table,
+        td,
+        p,
+        a,
+        li,
+        blockquote {
+          -ms-text-size-adjust: 100%;
+          -webkit-text-size-adjust: 100%;
+          font-weight: normal !important;
+        }
+
+        .ExternalClass td[class="ecxflexibleContainerBox"] h3 {
+          padding-top: 10px !important;
+        }
+
+        /* hotmail */
+        /* email template styles */
+        h1 {
+          display: block;
+          font-size: 26px;
+          font-style: normal;
+          font-weight: normal;
+          line-height: 100%;
+        }
+
+        h2 {
+          display: block;
+          font-size: 20px;
+          font-style: normal;
+          font-weight: normal;
+          line-height: 120%;
+        }
+
+        h3 {
+          display: block;
+          font-size: 17px;
+          font-style: normal;
+          font-weight: normal;
+          line-height: 110%;
+        }
+
+        h4 {
+          display: block;
+          font-size: 18px;
+          font-style: italic;
+          font-weight: normal;
+          line-height: 100%;
+        }
+
+        .flexibleImage {
+          height: auto;
+        }
+
+        table[class=flexibleContainerCellDivider] {
+          padding-bottom: 0 !important;
+          padding-top: 0 !important;
+        }
+
+        body,
+        #bodyTbl {
+          background-color: #E1E1E1;
+        }
+
+        #emailHeader {
+          background-color: #E1E1E1;
+        }
+
+        #emailBody {
+          background-color: #FFFFFF;
+        }
+
+        #emailFooter {
+          background-color: #E1E1E1;
+        }
+
+        .textContent {
+          color: #8B8B8B;
+          font-family: Helvetica;
+          font-size: 16px;
+          line-height: 125%;
+          text-align: Left;
+        }
+
+        .textContent a {
+          color: #205478;
+          text-decoration: underline;
+        }
+
+        .emailButton {
+          background-color: #205478;
+          border-collapse: separate;
+        }
+
+        .buttonContent {
+          color: #FFFFFF;
+          font-family: Helvetica;
+          font-size: 18px;
+          font-weight: bold;
+          line-height: 100%;
+          padding: 15px;
+          text-align: center;
+        }
+
+        .buttonContent a {
+          color: #FFFFFF;
+          display: block;
+          text-decoration: none !important;
+          border: 0 !important;
+        }
+
+        #invisibleIntroduction {
+          display: none;
+          display: none !important;
+        }
+
+        /* hide the introduction text */
+        /* other framework hacks and overrides */
+        span[class=ios-color-hack] a {
+          color: #275100 !important;
+          text-decoration: none !important;
+        }
+
+        /* Remove all link colors in IOS (below are duplicates based on the color preference) */
+        span[class=ios-color-hack2] a {
+          color: #205478 !important;
+          text-decoration: none !important;
+        }
+
+        span[class=ios-color-hack3] a {
+          color: #8B8B8B !important;
+          text-decoration: none !important;
+        }
+
+        /* phones and sms */
+        .a[href^="tel"],
+        a[href^="sms"] {
+          text-decoration: none !important;
+          color: #606060 !important;
+          pointer-events: none !important;
+          cursor: default !important;
+        }
+
+        .mobile_link a[href^="tel"],
+        .mobile_link a[href^="sms"] {
+          text-decoration: none !important;
+          color: #606060 !important;
+          pointer-events: auto !important;
+          cursor: default !important;
+        }
+
+        /* responsive styles */
+        @media only screen and (max-width: 480px) {
+          body {
+            width: 100% !important;
+            min-width: 100% !important;
+          }
+
+          table[id="emailHeader"],
+          table[id="emailBody"],
+          table[id="emailFooter"],
+          table[class="flexibleContainer"] {
+            width: 100% !important;
+          }
+
+          td[class="flexibleContainerBox"],
+          td[class="flexibleContainerBox"] table {
+            display: block;
+            width: 100%;
+            text-align: left;
+          }
+
+          td[class="imageContent"] img {
+            height: auto !important;
+            width: 100% !important;
+            max-width: 100% !important;
+          }
+
+          img[class="flexibleImage"] {
+            height: auto !important;
+            width: 100% !important;
+            max-width: 100% !important;
+          }
+
+          img[class="flexibleImageSmall"] {
+            height: auto !important;
+            width: auto !important;
+          }
+
+          table[class="flexibleContainerBoxNext"] {
+            padding-top: 10px !important;
+          }
+
+          table[class="emailButton"] {
+            width: 100% !important;
+          }
+
+          td[class="buttonContent"] {
+            padding: 0 !important;
+          }
+
+          td[class="buttonContent"] a {
+            padding: 15px !important;
+          }
+        }
+      </style>
+    </head>
+
+    <body bgcolor="#E1E1E1" leftmargin="0" marginwidth="0" topmargin="0" marginheight="0" offset="0">
+      <center style="background-color:#E1E1E1;">
+        <table border="0" cellpadding="0" cellspacing="0" height="100%" width="100%" id="bodyTbl" style="table-layout: fixed;max-width:100% !important;width: 100% !important;min-width: 100% !important;">
+          <tr>
+            <td align="center" valign="top" id="bodyCell">
+
+              <table bgcolor="#E1E1E1" border="0" cellpadding="0" cellspacing="0" width="500" id="emailHeader">
+                <tr>
+                  <td align="center" valign="top">
+
+                    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                      <tr>
+                        <td align="center" valign="top">
+
+                          <table border="0" cellpadding="10" cellspacing="0" width="500" class="flexibleContainer">
+                            <tr>
+                              <td valign="top" width="500" class="flexibleContainerCell">
+
+                                <table align="left" border="0" cellpadding="0" cellspacing="0" width="100%">
+                                  <tr>
+                                    <td align="left" valign="middle" id="invisibleIntroduction" class="flexibleContainerBox" style="display:none;display:none !important;">
+                                      <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width:100%;">
+                                        <tr>
+                                          <td align="left" class="textContent">
+                                            <div style="font-family:Helvetica,Arial,sans-serif;font-size:13px;color:#828282;text-align:center;line-height:120%;">
+                                              A new user who's consuming our REST API will have to verify their account by clicking on their unique link.
+                                            </div>
+                                          </td>
+                                        </tr>
+                                      </table>
+                                    </td>
+                                  </tr>
+                                </table>
+                              </td>
+                            </tr>
+                          </table>
+
+                        </td>
+                      </tr>
+                    </table>
+
+                  </td>
+                </tr>
+              </table>
+
+              <table bgcolor="#FFFFFF" border="0" cellpadding="0" cellspacing="0" width="500" id="emailBody">
+
+                <tr>
+                  <td align="center" valign="top">
+                    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="color:#FFFFFF;" bgcolor="#2E7D32">
+                      <tr>
+                        <td align="center" valign="top">
+                          <table border="0" cellpadding="0" cellspacing="0" width="500" class="flexibleContainer">
+                            <tr>
+                              <td align="center" valign="top" width="500" class="flexibleContainerCell">
+                                <table border="0" cellpadding="30" cellspacing="0" width="100%">
+                                  <tr>
+                                    <td align="center" valign="top" class="textContent">
+                                      <h1 style="color:#FFFFFF;line-height:100%;font-family:Helvetica,Arial,sans-serif;font-size:35px;font-weight:normal;margin-bottom:5px;text-align:center;">Account Verification</h1>
+                                      <h2 style="text-align:center;font-weight:normal;font-family:Helvetica,Arial,sans-serif;font-size:23px;margin-bottom:10px;color:#C9BC20;line-height:135%;">CSYE6225 REST API Activation</h2>
+                                      <div style="text-align:center;font-family:Helvetica,Arial,sans-serif;font-size:15px;margin-bottom:0;color:#FFFFFF;line-height:135%;">This is an auto-generated system email. Do not reply to this email as it cannot accept incoming e-mails. </div>
+                                    </td>
+                                  </tr>
+                                </table>
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                <tr>
+                  <td align="center" valign="top">
+                    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                      <tr>
+                        <td align="center" valign="top">
+                          <table border="0" cellpadding="0" cellspacing="0" width="500" class="flexibleContainer">
+                            <tr>
+                              <td align="center" valign="top" width="500" class="flexibleContainerCell">
+                                <table border="0" cellpadding="30" cellspacing="0" width="100%">
+                                  <tr>
+                                    <td align="center" valign="top">
+
+                                      <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                                        <tr>
+                                          <td valign="top" class="textContent">
+                                            <h3 style="color:#5F5F5F;line-height:125%;font-family:Helvetica,Arial,sans-serif;font-size:20px;font-weight:normal;margin-top:0;margin-bottom:3px;text-align:left;">Hello ${first_name} ${last_name},</h3>
+                                            <div style="text-align:left;font-family:Helvetica,Arial,sans-serif;font-size:15px;margin-bottom:0;margin-top:3px;color:#5F5F5F;line-height:135%;">Thank you for registering with Network Structures and Cloud Computing coursework for this semester!
+                                              While we have you registered to use our REST API service, we need to verify your account.</div><br>
+                                              <div style="text-align:left;font-family:Helvetica,Arial,sans-serif;font-size:15px;margin-bottom:0;margin-top:3px;color:#5F5F5F;line-height:135%;">The below link will redirect you to verify your email and allow your to consume our REST API. <br><br>
+                                                <b>Please note that this link will be valid only for 5 minutes:</b></div>
+                                          </td>
+                                        </tr>
+                                      </table>
+
+                                    </td>
+                                  </tr>
+                                </table>
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+
+                <tr>
+                  <td align="center" valign="top">
+                    <table border="0" cellpadding="0" cellspacing="0" width="100%" bgcolor="#F8F8F8">
+                      <tr>
+                        <td align="center" valign="top">
+                          <table border="0" cellpadding="0" cellspacing="0" width="500" class="flexibleContainer">
+                            <tr>
+                              <td align="center" valign="top" width="500" class="flexibleContainerCell">
+                                <table border="0" cellpadding="30" cellspacing="0" width="100%">
+                                  <tr>
+                                    <td align="center" valign="top">
+                                      <table border="0" cellpadding="0" cellspacing="0" width="50%" class="emailButton" style="background-color: #2E7D32;">
+                                        <tr>
+                                          <td align="center" valign="middle" class="buttonContent" style="padding-top:15px;padding-bottom:15px;padding-right:15px;padding-left:15px;">
+                                            <a style="color:#FFFFFF;text-decoration:none;font-family:Helvetica,Arial,sans-serif;font-size:20px;line-height:135%;" href="https://${domainEnvironment}.sydrawat.me/v2/verifyUserEmail?token=${token}&email=${email}" target="_blank">Verify</a>
+                                          </td>
+                                        </tr>
+                                      </table>
+                                      <br>
+                                      <div style="text-align:left;font-family:Helvetica,Arial,sans-serif;font-size:13px;margin-bottom:0;margin-top:3px;color:#5F5F5F;line-height:120%;"> If you did not create a account with us, it is possible that someone else is trying to access our service by using your email <a href="mailto:${email}">${email}.</a><br> <b>Do not forward or share this link with anyone.</b>
+                                      <br><br>
+                                      You received this email because you require access to use our REST API services. If you think this is incorrect, please contact our support team. </div><br>
+                                    </td>
+                                  </tr>
+                                </table>
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+
+              </table>
+
+              <!-- footer -->
+              <table bgcolor="#E1E1E1" border="0" cellpadding="0" cellspacing="0" width="500" id="emailFooter">
+                <tr>
+                  <td align="center" valign="top">
+                    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                      <tr>
+                        <td align="center" valign="top">
+                          <table border="0" cellpadding="0" cellspacing="0" width="500" class="flexibleContainer">
+                            <tr>
+                              <td align="center" valign="top" width="500" class="flexibleContainerCell">
+                                <table border="0" cellpadding="30" cellspacing="0" width="100%">
+                                  <tr>
+                                    <td valign="top" bgcolor="#E1E1E1">
+
+                                      <div style="font-family:Helvetica,Arial,sans-serif;font-size:13px;color:#828282;text-align:center;line-height:120%;">
+                                        <div>&#169; 2022 <a href="https://sydrawat.netlify.app" target="_blank" style="text-decoration:none;color:#828282;">sydrawat</a>. All rights reserved.</div>
+                                        <div>If you don't want to receive these emails from us in the future, please <a href="https://sydrawat.netlify.app/unsubscribe" target="_blank" style="text-decoration:none;color:#828282;"><span style="color:#828282;">unsubscribe</span></a></div>
+                                      </div>
+
+                                    </td>
+                                  </tr>
+                                </table>
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+              <!-- // end of footer -->
+
+            </td>
+          </tr>
+        </table>
+      </center>
+    </body>
+
+    </html>
+    `
 
     const params = {
       Destination: {
