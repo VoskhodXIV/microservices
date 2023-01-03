@@ -32,6 +32,7 @@ jobs:
           echo DomainEnvironment=${{ env.ENVIRONMENT}} >> .env
 
       - name: Create the artifact
+        run: |
           zip -r serverless.zip ./
           chmod +x serverless.zip
 
